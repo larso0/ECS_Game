@@ -6,31 +6,18 @@
  */
 
 #include <SDL2/SDL.h>
-#include "ECS/ECS.h"
+#include "ECS/ECS_Error.h"
+#include "ECS/ECS_Systems.h"
 
 #define GAME_WINDOW_WIDTH 640
 #define GAME_WINDOW_HEIGHT 480
-#define GAME_PIXELS_PER_METER 20
+#define GAME_ENTITY_COUNT 10
+#define GAME_ENTITY_CAMERA 0
+#define GAME_ENTITY_CHARACTER 1
 
 static SDL_Window* window;
 static SDL_Renderer* renderer;
-static ECS_World world;
-
-void ErrorMessage(const char* message)
-{
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", message, NULL);
-}
-
-void WarningMessage(const char* message)
-{
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Warning", message, NULL);
-}
-
-void InformationMessage(const char* message)
-{
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Information", message,
-			NULL);
-}
+static ECS_Entity entities[GAME_ENTITY_COUNT];
 
 int Init()
 {
@@ -39,39 +26,74 @@ int Init()
 	error = SDL_Init(SDL_INIT_VIDEO);
 	if (error)
 	{
-		ErrorMessage(SDL_GetError());
+		ECS_ErrorMessage(SDL_GetError());
 		return 1;
+	}
+
+	int imgmask = IMG_INIT_JPG | IMG_INIT_PNG;
+	int imginit = IMG_Init(imgmask);
+	if((imginit & imginit) != imginit)
+	{
+		ECS_ErrorMessage(IMG_GetError());
+		SDL_Quit();
+		return 2;
 	}
 
 	window = SDL_CreateWindow("ECS_Game",
 	SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-	GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE);
+	GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT, 0);
 	if (window == NULL)
 	{
-		ErrorMessage(SDL_GetError());
+		ECS_ErrorMessage(SDL_GetError());
 		SDL_Quit();
-		return 2;
+		return 3;
 	}
 
 	renderer = SDL_CreateRenderer(window, -1,
 			SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	if (renderer == NULL)
 	{
-		ErrorMessage(SDL_GetError());
+		ECS_ErrorMessage(SDL_GetError());
 		SDL_DestroyWindow(window);
 		SDL_Quit();
-		return 3;
+		return 4;
 	}
 
-	ECS_InitWorld(&world);
+	int i;
+	for(i = 0; i < GAME_ENTITY_COUNT; i++)
+	{
+		ECS_InitEntity(entities + i);
+	}
+
+	entities[GAME_ENTITY_CAMERA].mask =
+			ECS_COMPONENT_CAMERA |
+			ECS_COMPONENT_TRANSLATION;
+	entities[GAME_ENTITY_CHARACTER].mask =
+			ECS_COMPONENT_TRANSLATION |
+			ECS_COMPONENT_VELOCITY |
+			ECS_COMPONENT_ACCELERATION |
+			ECS_COMPONENT_SPRITE;
+	ECS_LoadSprite(
+			&entities[GAME_ENTITY_CHARACTER].sprite,
+			"resources/character_sprite.png",
+			"resources/character_sprite.meta",
+			renderer);
+
+	ECS_UpdateCamera(entities + GAME_ENTITY_CAMERA, GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT);
 
 	return 0;
 }
 
 void Quit()
 {
+	int i;
+	for(i = 0; i < GAME_ENTITY_COUNT; i++)
+	{
+		ECS_CleanEntity(entities + i);
+	}
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
+	IMG_Quit();
 	SDL_Quit();
 }
 
@@ -83,10 +105,6 @@ int main(int argc, char** argv)
 		return error;
 	}
 
-	int boxEntity = ECS_CreateEntity(&world);
-	world.mask[boxEntity] = ECS_SYSTEM_MOVEMENT;
-	float yThrust = 20.f;
-	float xThrust = 10.f;
 
 	int running = 1;
 	float time = SDL_GetTicks() / 1000.f;
@@ -96,35 +114,13 @@ int main(int argc, char** argv)
 		float delta = ntime - time;
 		time = ntime;
 
-		ECS_ComponentVelocity* v = &world.velocity[boxEntity];
-		const Uint8* keys = SDL_GetKeyboardState(NULL);
-		if (keys[SDL_SCANCODE_UP])
-		{
-			v->y += yThrust * delta;
-		}
-		if (keys[SDL_SCANCODE_LEFT])
-		{
-			v->x -= xThrust * delta;
-		}
-		if (keys[SDL_SCANCODE_RIGHT])
-		{
-			v->x += xThrust * delta;
-		}
-
-		ECS_Update(&world, delta);
-
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
 
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		float size = 1.f;
-		SDL_Rect box;
-		ECS_ComponentPosition* s = &world.position[boxEntity];
-		box.x = GAME_WINDOW_WIDTH / 2+ (s->x - size/2)*GAME_PIXELS_PER_METER;
-		box.y = GAME_WINDOW_HEIGHT
-				/ 2+ ((-s->y) - size/2)*GAME_PIXELS_PER_METER;
-		box.w = box.h = size * GAME_PIXELS_PER_METER;
-		SDL_RenderFillRect(renderer, &box);
+		ECS_RenderEntity(
+				entities + GAME_ENTITY_CHARACTER,
+				entities + GAME_ENTITY_CAMERA,
+				renderer);
 
 		SDL_RenderPresent(renderer);
 
