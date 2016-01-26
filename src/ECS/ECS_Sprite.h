@@ -27,4 +27,12 @@ int ECS_LoadSprite(ECS_Sprite* sprite, char* img, char* meta, SDL_Renderer* rend
 void ECS_RenderSprite(ECS_Sprite* sprite, SDL_Rect* dst, SDL_Renderer* renderer);
 void ECS_RenderSpriteAngle(ECS_Sprite* sprite, SDL_Rect* dst, float angle, SDL_Renderer* renderer);
 
+typedef struct
+{
+	float time;
+	float delta;
+	size_t begin;
+	size_t count;
+} ECS_Animation;
+
 #endif /* SRC_ECS_ECS_SPRITE_H_ */

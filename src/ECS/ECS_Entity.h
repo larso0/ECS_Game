@@ -20,6 +20,7 @@ typedef struct
 	float angular_velocity;
 	float angular_acceleration;
 	ECS_Sprite sprite;
+	ECS_Animation animation;
 	ECS_Camera camera;
 } ECS_Entity;
 

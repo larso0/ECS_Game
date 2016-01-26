@@ -22,6 +22,10 @@ void ECS_InitEntity(ECS_Entity* entity)
 		entity->angular_velocity = 0.f;
 		entity->angular_acceleration = 0.f;
 		ECS_InitSprite(&entity->sprite);
+		entity->animation.begin = 0;
+		entity->animation.count = 0;
+		entity->animation.time = 0.f;
+		entity->animation.delta = 0.1f;
 		entity->camera.screen_w = 0;
 		entity->camera.screen_h = 0;
 		entity->camera.center_x = 0;

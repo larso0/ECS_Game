@@ -81,6 +81,18 @@ void ECS_RenderEntity(ECS_Entity* entity, ECS_Entity* camera, SDL_Renderer* rend
 	}
 }
 
+void ECS_ApplyAnimation(ECS_Entity* entity, float delta)
+{
+	if(entity && (entity->mask & ECS_SYSTEM_ANIMATION) == ECS_SYSTEM_ANIMATION)
+	{
+		ECS_Animation* anim = &entity->animation;
+		anim->time += delta;
+		float maxtime = anim->count*anim->delta;
+		while(anim->time > maxtime) anim->time -= maxtime;
+		entity->sprite.current = anim->begin + (size_t)(anim->time / anim->delta);
+	}
+}
+
 void ECS_UpdateCamera(ECS_Entity* entity, int w, int h)
 {
 	if(entity && (entity->mask & ECS_SYSTEM_CAMERA) == ECS_SYSTEM_CAMERA)

@@ -18,6 +18,10 @@
 static SDL_Window* window;
 static SDL_Renderer* renderer;
 static ECS_Entity entities[GAME_ENTITY_COUNT];
+static enum { IDLE_ANIM, WALK_ANIM, RUN_ANIM } animation = IDLE_ANIM;
+static const ECS_Animation IDLE_ANIMATION = { 0.f, 0.2f, 0, 4 };
+static const ECS_Animation WALK_ANIMATION = { 0.f, 0.1f, 24, 8 };
+static const ECS_Animation RUN_ANIMATION = { 0.f, 0.1f, 4, 8 };
 
 int Init()
 {
@@ -65,6 +69,11 @@ int Init()
 		ECS_InitEntity(entities + i);
 	}
 
+	return 0;
+}
+
+void InitEntities()
+{
 	entities[GAME_ENTITY_CAMERA].mask =
 			ECS_COMPONENT_CAMERA |
 			ECS_COMPONENT_TRANSLATION;
@@ -72,16 +81,17 @@ int Init()
 			ECS_COMPONENT_TRANSLATION |
 			ECS_COMPONENT_VELOCITY |
 			ECS_COMPONENT_ACCELERATION |
-			ECS_COMPONENT_SPRITE;
+			ECS_COMPONENT_ANGLE |
+			ECS_COMPONENT_SPRITE |
+			ECS_COMPONENT_ANIMATION;
 	ECS_LoadSprite(
 			&entities[GAME_ENTITY_CHARACTER].sprite,
 			"resources/character_sprite.png",
 			"resources/character_sprite.meta",
 			renderer);
+	entities[GAME_ENTITY_CHARACTER].animation = IDLE_ANIMATION;
 
 	ECS_UpdateCamera(entities + GAME_ENTITY_CAMERA, GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT);
-
-	return 0;
 }
 
 void Quit()
@@ -105,6 +115,7 @@ int main(int argc, char** argv)
 		return error;
 	}
 
+	InitEntities();
 
 	int running = 1;
 	float time = SDL_GetTicks() / 1000.f;
@@ -113,6 +124,64 @@ int main(int argc, char** argv)
 		float ntime = SDL_GetTicks() / 1000.f;
 		float delta = ntime - time;
 		time = ntime;
+
+		ECS_ApplyAnimation(entities + GAME_ENTITY_CHARACTER, delta);
+		ECS_ApplyMovement(entities + GAME_ENTITY_CHARACTER, delta);
+
+		const Uint8* keys = SDL_GetKeyboardState(NULL);
+		if(keys[SDL_SCANCODE_LEFT] && !keys[SDL_SCANCODE_RIGHT])
+		{
+			if(keys[SDL_SCANCODE_LALT])
+			{
+				if(animation != RUN_ANIM)
+				{
+					entities[GAME_ENTITY_CHARACTER].animation = RUN_ANIMATION;
+					animation = RUN_ANIM;
+				}
+				entities[GAME_ENTITY_CHARACTER].velocity.x = -100.f;
+			}
+			else
+			{
+				if(animation != WALK_ANIM)
+				{
+					entities[GAME_ENTITY_CHARACTER].animation = WALK_ANIMATION;
+					animation = WALK_ANIM;
+				}
+				entities[GAME_ENTITY_CHARACTER].velocity.x = -50.f;
+			}
+			entities[GAME_ENTITY_CHARACTER].sprite.flip = SDL_FLIP_HORIZONTAL;
+		}
+		else if(!keys[SDL_SCANCODE_LEFT] && keys[SDL_SCANCODE_RIGHT])
+		{
+			if(keys[SDL_SCANCODE_LALT])
+			{
+				if(animation != RUN_ANIM)
+				{
+					entities[GAME_ENTITY_CHARACTER].animation = RUN_ANIMATION;
+					animation = RUN_ANIM;
+				}
+				entities[GAME_ENTITY_CHARACTER].velocity.x = 100.f;
+			}
+			else
+			{
+				if(animation != WALK_ANIM)
+				{
+					entities[GAME_ENTITY_CHARACTER].animation = WALK_ANIMATION;
+					animation = WALK_ANIM;
+				}
+				entities[GAME_ENTITY_CHARACTER].velocity.x = 50.f;
+			}
+			entities[GAME_ENTITY_CHARACTER].sprite.flip = SDL_FLIP_NONE;
+		}
+		else
+		{
+			if(animation != IDLE_ANIM)
+			{
+				entities[GAME_ENTITY_CHARACTER].animation = IDLE_ANIMATION;
+				animation = IDLE_ANIM;
+			}
+			entities[GAME_ENTITY_CHARACTER].velocity.x = 0.f;
+		}
 
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
