@@ -57,15 +57,15 @@ void ECS_RenderEntity(ECS_Entity* entity, ECS_Entity* camera, SDL_Renderer* rend
 		rect.y = -rect.h/2;
 		if(entity->mask & ECS_COMPONENT_TRANSLATION)
 		{
-			rect.x += entity->translation.x;
-			rect.y -= entity->translation.y;
+			rect.x += entity->translation.x *  ECS_PIXELS_PER_METER;
+			rect.y -= entity->translation.y * ECS_PIXELS_PER_METER;
 		}
 		if(camera && (camera->mask & ECS_SYSTEM_CAMERA) == ECS_SYSTEM_CAMERA)
 		{
 			if(camera->mask & ECS_COMPONENT_TRANSLATION)
 			{
-				rect.x -= camera->translation.x;
-				rect.y += camera->translation.y;
+				rect.x -= camera->translation.x * ECS_PIXELS_PER_METER;
+				rect.y += camera->translation.y * ECS_PIXELS_PER_METER;
 			}
 			rect.x += camera->camera.center_x;
 			rect.y += camera->camera.center_y;

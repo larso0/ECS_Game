@@ -138,7 +138,7 @@ int main(int argc, char** argv)
 					entities[GAME_ENTITY_CHARACTER].animation = RUN_ANIMATION;
 					animation = RUN_ANIM;
 				}
-				entities[GAME_ENTITY_CHARACTER].velocity.x = -100.f;
+				entities[GAME_ENTITY_CHARACTER].velocity.x = -2.f;
 			}
 			else
 			{
@@ -147,7 +147,7 @@ int main(int argc, char** argv)
 					entities[GAME_ENTITY_CHARACTER].animation = WALK_ANIMATION;
 					animation = WALK_ANIM;
 				}
-				entities[GAME_ENTITY_CHARACTER].velocity.x = -50.f;
+				entities[GAME_ENTITY_CHARACTER].velocity.x = -1.f;
 			}
 			entities[GAME_ENTITY_CHARACTER].sprite.flip = SDL_FLIP_HORIZONTAL;
 		}
@@ -160,7 +160,7 @@ int main(int argc, char** argv)
 					entities[GAME_ENTITY_CHARACTER].animation = RUN_ANIMATION;
 					animation = RUN_ANIM;
 				}
-				entities[GAME_ENTITY_CHARACTER].velocity.x = 100.f;
+				entities[GAME_ENTITY_CHARACTER].velocity.x = 2.f;
 			}
 			else
 			{
@@ -169,7 +169,7 @@ int main(int argc, char** argv)
 					entities[GAME_ENTITY_CHARACTER].animation = WALK_ANIMATION;
 					animation = WALK_ANIM;
 				}
-				entities[GAME_ENTITY_CHARACTER].velocity.x = 50.f;
+				entities[GAME_ENTITY_CHARACTER].velocity.x = 1.f;
 			}
 			entities[GAME_ENTITY_CHARACTER].sprite.flip = SDL_FLIP_NONE;
 		}
