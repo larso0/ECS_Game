@@ -19,9 +19,9 @@ static SDL_Window* window;
 static SDL_Renderer* renderer;
 static ECS_Entity entities[GAME_ENTITY_COUNT];
 static enum { IDLE_ANIM, WALK_ANIM, RUN_ANIM } animation = IDLE_ANIM;
-static const ECS_Animation IDLE_ANIMATION = { 0.f, 0.2f, 0, 4 };
-static const ECS_Animation WALK_ANIMATION = { 0.f, 0.1f, 24, 8 };
-static const ECS_Animation RUN_ANIMATION = { 0.f, 0.1f, 4, 8 };
+static const ECS_Animation IDLE_ANIMATION = { 0.2f, 0, 4 };
+static const ECS_Animation WALK_ANIMATION = { 0.1f, 24, 8 };
+static const ECS_Animation RUN_ANIMATION = { 0.1f, 4, 8 };
 
 int Init()
 {
@@ -84,23 +84,18 @@ void InitEntities()
 			ECS_COMPONENT_ANGLE |
 			ECS_COMPONENT_SPRITE |
 			ECS_COMPONENT_ANIMATION;
-	ECS_LoadSprite(
-			&entities[GAME_ENTITY_CHARACTER].sprite,
-			"resources/character_sprite.png",
+	entities[GAME_ENTITY_CHARACTER].sprite =
+			ECS_CreateSprite("resources/character_sprite.png",
 			"resources/character_sprite.meta",
 			renderer);
-	entities[GAME_ENTITY_CHARACTER].animation = IDLE_ANIMATION;
+	entities[GAME_ENTITY_CHARACTER].animation = (ECS_Animation*)&IDLE_ANIMATION;
 
 	ECS_UpdateCamera(entities + GAME_ENTITY_CAMERA, GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT);
 }
 
 void Quit()
 {
-	int i;
-	for(i = 0; i < GAME_ENTITY_COUNT; i++)
-	{
-		ECS_CleanEntity(entities + i);
-	}
+	ECS_DestroySprite(entities[GAME_ENTITY_CHARACTER].sprite);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	IMG_Quit();
@@ -135,7 +130,7 @@ int main(int argc, char** argv)
 			{
 				if(animation != RUN_ANIM)
 				{
-					entities[GAME_ENTITY_CHARACTER].animation = RUN_ANIMATION;
+					entities[GAME_ENTITY_CHARACTER].animation = (ECS_Animation*)&RUN_ANIMATION;
 					animation = RUN_ANIM;
 				}
 				entities[GAME_ENTITY_CHARACTER].velocity.x = -2.f;
@@ -144,12 +139,12 @@ int main(int argc, char** argv)
 			{
 				if(animation != WALK_ANIM)
 				{
-					entities[GAME_ENTITY_CHARACTER].animation = WALK_ANIMATION;
+					entities[GAME_ENTITY_CHARACTER].animation = (ECS_Animation*)&WALK_ANIMATION;
 					animation = WALK_ANIM;
 				}
 				entities[GAME_ENTITY_CHARACTER].velocity.x = -1.f;
 			}
-			entities[GAME_ENTITY_CHARACTER].sprite.flip = SDL_FLIP_HORIZONTAL;
+			entities[GAME_ENTITY_CHARACTER].sprite_flip = SDL_FLIP_HORIZONTAL;
 		}
 		else if(!keys[SDL_SCANCODE_LEFT] && keys[SDL_SCANCODE_RIGHT])
 		{
@@ -157,7 +152,7 @@ int main(int argc, char** argv)
 			{
 				if(animation != RUN_ANIM)
 				{
-					entities[GAME_ENTITY_CHARACTER].animation = RUN_ANIMATION;
+					entities[GAME_ENTITY_CHARACTER].animation = (ECS_Animation*)&RUN_ANIMATION;
 					animation = RUN_ANIM;
 				}
 				entities[GAME_ENTITY_CHARACTER].velocity.x = 2.f;
@@ -166,18 +161,18 @@ int main(int argc, char** argv)
 			{
 				if(animation != WALK_ANIM)
 				{
-					entities[GAME_ENTITY_CHARACTER].animation = WALK_ANIMATION;
+					entities[GAME_ENTITY_CHARACTER].animation = (ECS_Animation*)&WALK_ANIMATION;
 					animation = WALK_ANIM;
 				}
 				entities[GAME_ENTITY_CHARACTER].velocity.x = 1.f;
 			}
-			entities[GAME_ENTITY_CHARACTER].sprite.flip = SDL_FLIP_NONE;
+			entities[GAME_ENTITY_CHARACTER].sprite_flip = SDL_FLIP_NONE;
 		}
 		else
 		{
 			if(animation != IDLE_ANIM)
 			{
-				entities[GAME_ENTITY_CHARACTER].animation = IDLE_ANIMATION;
+				entities[GAME_ENTITY_CHARACTER].animation = (ECS_Animation*)&IDLE_ANIMATION;
 				animation = IDLE_ANIM;
 			}
 			entities[GAME_ENTITY_CHARACTER].velocity.x = 0.f;

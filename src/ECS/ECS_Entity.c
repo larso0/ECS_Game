@@ -21,26 +21,14 @@ void ECS_InitEntity(ECS_Entity* entity)
 		entity->angle = 0.f;
 		entity->angular_velocity = 0.f;
 		entity->angular_acceleration = 0.f;
-		ECS_InitSprite(&entity->sprite);
-		entity->animation.begin = 0;
-		entity->animation.count = 0;
-		entity->animation.time = 0.f;
-		entity->animation.delta = 0.1f;
+		entity->sprite = NULL;
+		entity->sprite_index = 0;
+		entity->sprite_flip = SDL_FLIP_NONE;
+		entity->animation = NULL;
+		entity->animation_time = 0.f;
 		entity->camera.screen_w = 0;
 		entity->camera.screen_h = 0;
 		entity->camera.center_x = 0;
 		entity->camera.center_y = 0;
-	}
-}
-
-void ECS_CleanEntity(ECS_Entity* entity)
-{
-	if(entity)
-	{
-		if(entity->mask & ECS_COMPONENT_SPRITE)
-		{
-			ECS_CleanSprite(&entity->sprite);
-		}
-		ECS_InitEntity(entity);
 	}
 }

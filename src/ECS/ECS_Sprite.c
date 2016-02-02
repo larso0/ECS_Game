@@ -16,8 +16,6 @@ void ECS_InitSprite(ECS_Sprite* sprite)
 		sprite->texture = NULL;
 		sprite->rectangles = NULL;
 		sprite->rectangle_count = 0;
-		sprite->current = 0;
-		sprite->flip = SDL_FLIP_NONE;
 	}
 }
 
@@ -138,20 +136,24 @@ int ECS_LoadSprite(ECS_Sprite* sprite, char* img, char* meta, SDL_Renderer* rend
 	return ret;
 }
 
-void ECS_RenderSprite(ECS_Sprite* sprite, SDL_Rect* dst, SDL_Renderer* renderer)
+void ECS_RenderSprite(ECS_Sprite* sprite, size_t index, SDL_Rect* dst, float angle, SDL_RendererFlip flip, SDL_Renderer* renderer)
 {
-	if(sprite && renderer)
+	if(sprite && renderer && index < sprite->rectangle_count)
 	{
-		SDL_RenderCopy(renderer, sprite->texture, sprite->rectangles + sprite->current, dst);
+		SDL_RenderCopyEx(renderer, sprite->texture,
+				sprite->rectangles + index,
+				dst, angle, NULL, flip);
 	}
 }
 
-void ECS_RenderSpriteAngle(ECS_Sprite* sprite, SDL_Rect* dst, float angle, SDL_Renderer* renderer)
+ECS_Animation* ECS_CreateAnimation(float delta, size_t begin, size_t count)
 {
-	if(sprite && renderer)
+	ECS_Animation* anim = malloc(sizeof(ECS_Animation));
+	if(anim)
 	{
-		SDL_RenderCopyEx(renderer, sprite->texture,
-				sprite->rectangles + sprite->current,
-				dst, angle, NULL, sprite->flip);
+		anim->delta = delta;
+		anim->begin = begin;
+		anim->count = count;
 	}
+	return anim;
 }

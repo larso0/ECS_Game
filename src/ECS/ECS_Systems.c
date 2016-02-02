@@ -48,11 +48,13 @@ void ECS_ApplyRotation(ECS_Entity* entity, float delta)
 
 void ECS_RenderEntity(ECS_Entity* entity, ECS_Entity* camera, SDL_Renderer* renderer)
 {
-	if(entity && renderer && (entity->mask & ECS_SYSTEM_RENDERABLE) == ECS_SYSTEM_RENDERABLE)
+	if(entity && renderer &&
+			(entity->mask & ECS_SYSTEM_RENDERABLE) == ECS_SYSTEM_RENDERABLE &&
+			entity->sprite && entity->sprite_index < entity->sprite->rectangle_count)
 	{
 		SDL_Rect rect;
-		rect.w = entity->sprite.rectangles[entity->sprite.current].w;
-		rect.h = entity->sprite.rectangles[entity->sprite.current].h;
+		rect.w = entity->sprite->rectangles[entity->sprite_index].w;
+		rect.h = entity->sprite->rectangles[entity->sprite_index].h;
 		rect.x = -rect.w/2;
 		rect.y = -rect.h/2;
 		if(entity->mask & ECS_COMPONENT_TRANSLATION)
@@ -70,14 +72,10 @@ void ECS_RenderEntity(ECS_Entity* entity, ECS_Entity* camera, SDL_Renderer* rend
 			rect.x += camera->camera.center_x;
 			rect.y += camera->camera.center_y;
 		}
-		if(entity->mask & ECS_COMPONENT_ANGLE)
-		{
-			ECS_RenderSpriteAngle(&entity->sprite, &rect, entity->angle, renderer);
-		}
-		else
-		{
-			ECS_RenderSprite(&entity->sprite, &rect, renderer);
-		}
+
+		ECS_RenderSprite(entity->sprite, entity->sprite_index,
+				&rect, (entity->mask & ECS_COMPONENT_ANGLE) ? entity->angle : 0.f,
+				entity->sprite_flip, renderer);
 	}
 }
 
@@ -85,11 +83,11 @@ void ECS_ApplyAnimation(ECS_Entity* entity, float delta)
 {
 	if(entity && (entity->mask & ECS_SYSTEM_ANIMATION) == ECS_SYSTEM_ANIMATION)
 	{
-		ECS_Animation* anim = &entity->animation;
-		anim->time += delta;
+		ECS_Animation* anim = entity->animation;
+		entity->animation_time += delta;
 		float maxtime = anim->count*anim->delta;
-		while(anim->time > maxtime) anim->time -= maxtime;
-		entity->sprite.current = anim->begin + (size_t)(anim->time / anim->delta);
+		while(entity->animation_time > maxtime) entity->animation_time -= maxtime;
+		entity->sprite_index = anim->begin + (size_t)(entity->animation_time / anim->delta);
 	}
 }
 
