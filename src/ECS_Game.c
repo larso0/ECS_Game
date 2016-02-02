@@ -9,19 +9,23 @@
 #include "ECS/ECS_Error.h"
 #include "ECS/ECS_Systems.h"
 
-#define GAME_WINDOW_WIDTH 640
-#define GAME_WINDOW_HEIGHT 480
-#define GAME_ENTITY_COUNT 10
-#define GAME_ENTITY_CAMERA 0
-#define GAME_ENTITY_CHARACTER 1
+#define WINDOW_WIDTH 640
+#define WINDOW_HEIGHT 480
+#define ENTITY_COUNT 10
+#define ENTITY_CAMERA 1
+#define ENTITY_CHARACTER 1
+#define ENTITY_STATIC_CHARACTER 2
+#define WALK_SPEED 2.f
+#define RUN_SPEED 4.f
 
 static SDL_Window* window;
 static SDL_Renderer* renderer;
-static ECS_Entity entities[GAME_ENTITY_COUNT];
+static ECS_Entity entities[ENTITY_COUNT];
+static ECS_Sprite character_sprite;
 static enum { IDLE_ANIM, WALK_ANIM, RUN_ANIM } animation = IDLE_ANIM;
-static const ECS_Animation IDLE_ANIMATION = { 0.2f, 0, 4 };
-static const ECS_Animation WALK_ANIMATION = { 0.1f, 24, 8 };
-static const ECS_Animation RUN_ANIMATION = { 0.1f, 4, 8 };
+static ECS_Animation idle_animation = { 0.2f, 0, 4 };
+static ECS_Animation walk_animation = { 0.1f, 24, 8 };
+static ECS_Animation run_animation = { 0.1f, 4, 8 };
 
 int Init()
 {
@@ -45,7 +49,7 @@ int Init()
 
 	window = SDL_CreateWindow("ECS_Game",
 	SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-	GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT, 0);
+	WINDOW_WIDTH, WINDOW_HEIGHT, 0);
 	if (window == NULL)
 	{
 		ECS_ErrorMessage(SDL_GetError());
@@ -63,8 +67,13 @@ int Init()
 		return 4;
 	}
 
+	ECS_InitSprite(&character_sprite);
+	ECS_LoadSprite(&character_sprite,
+			"resources/character_sprite.png",
+			"resources/character_sprite.meta", renderer);
+
 	int i;
-	for(i = 0; i < GAME_ENTITY_COUNT; i++)
+	for(i = 0; i < ENTITY_COUNT; i++)
 	{
 		ECS_InitEntity(entities + i);
 	}
@@ -74,28 +83,32 @@ int Init()
 
 void InitEntities()
 {
-	entities[GAME_ENTITY_CAMERA].mask =
+	entities[ENTITY_CAMERA].mask =
 			ECS_COMPONENT_CAMERA |
 			ECS_COMPONENT_TRANSLATION;
-	entities[GAME_ENTITY_CHARACTER].mask =
+	entities[ENTITY_CHARACTER].mask |=
 			ECS_COMPONENT_TRANSLATION |
 			ECS_COMPONENT_VELOCITY |
 			ECS_COMPONENT_ACCELERATION |
-			ECS_COMPONENT_ANGLE |
 			ECS_COMPONENT_SPRITE |
 			ECS_COMPONENT_ANIMATION;
-	entities[GAME_ENTITY_CHARACTER].sprite =
-			ECS_CreateSprite("resources/character_sprite.png",
-			"resources/character_sprite.meta",
-			renderer);
-	entities[GAME_ENTITY_CHARACTER].animation = (ECS_Animation*)&IDLE_ANIMATION;
+	entities[ENTITY_CHARACTER].sprite = &character_sprite;
+	entities[ENTITY_CHARACTER].animation = &idle_animation;
+	entities[ENTITY_STATIC_CHARACTER].mask =
+			ECS_COMPONENT_TRANSLATION |
+			ECS_COMPONENT_SPRITE |
+			ECS_COMPONENT_ANIMATION;
+	entities[ENTITY_STATIC_CHARACTER].sprite = &character_sprite;
+	entities[ENTITY_STATIC_CHARACTER].animation = &idle_animation;
+	entities[ENTITY_STATIC_CHARACTER].translation.x = 2.f;
+	entities[ENTITY_STATIC_CHARACTER].translation.y = 2.f;
 
-	ECS_UpdateCamera(entities + GAME_ENTITY_CAMERA, GAME_WINDOW_WIDTH, GAME_WINDOW_HEIGHT);
+	ECS_UpdateCamera(entities + ENTITY_CAMERA, WINDOW_WIDTH, WINDOW_HEIGHT);
 }
 
 void Quit()
 {
-	ECS_DestroySprite(entities[GAME_ENTITY_CHARACTER].sprite);
+	ECS_CleanSprite(&character_sprite);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	IMG_Quit();
@@ -120,8 +133,9 @@ int main(int argc, char** argv)
 		float delta = ntime - time;
 		time = ntime;
 
-		ECS_ApplyAnimation(entities + GAME_ENTITY_CHARACTER, delta);
-		ECS_ApplyMovement(entities + GAME_ENTITY_CHARACTER, delta);
+		ECS_ApplyAnimation(entities + ENTITY_CHARACTER, delta);
+		ECS_ApplyAnimation(entities + ENTITY_STATIC_CHARACTER, delta);
+		ECS_ApplyMovement(entities + ENTITY_CHARACTER, delta);
 
 		const Uint8* keys = SDL_GetKeyboardState(NULL);
 		if(keys[SDL_SCANCODE_LEFT] && !keys[SDL_SCANCODE_RIGHT])
@@ -130,21 +144,21 @@ int main(int argc, char** argv)
 			{
 				if(animation != RUN_ANIM)
 				{
-					entities[GAME_ENTITY_CHARACTER].animation = (ECS_Animation*)&RUN_ANIMATION;
+					entities[ENTITY_CHARACTER].animation = &run_animation;
 					animation = RUN_ANIM;
 				}
-				entities[GAME_ENTITY_CHARACTER].velocity.x = -2.f;
+				entities[ENTITY_CHARACTER].velocity.x = -RUN_SPEED;
 			}
 			else
 			{
 				if(animation != WALK_ANIM)
 				{
-					entities[GAME_ENTITY_CHARACTER].animation = (ECS_Animation*)&WALK_ANIMATION;
+					entities[ENTITY_CHARACTER].animation = &walk_animation;
 					animation = WALK_ANIM;
 				}
-				entities[GAME_ENTITY_CHARACTER].velocity.x = -1.f;
+				entities[ENTITY_CHARACTER].velocity.x = -WALK_SPEED;
 			}
-			entities[GAME_ENTITY_CHARACTER].sprite_flip = SDL_FLIP_HORIZONTAL;
+			entities[ENTITY_CHARACTER].sprite_flip = SDL_FLIP_HORIZONTAL;
 		}
 		else if(!keys[SDL_SCANCODE_LEFT] && keys[SDL_SCANCODE_RIGHT])
 		{
@@ -152,38 +166,42 @@ int main(int argc, char** argv)
 			{
 				if(animation != RUN_ANIM)
 				{
-					entities[GAME_ENTITY_CHARACTER].animation = (ECS_Animation*)&RUN_ANIMATION;
+					entities[ENTITY_CHARACTER].animation = &run_animation;
 					animation = RUN_ANIM;
 				}
-				entities[GAME_ENTITY_CHARACTER].velocity.x = 2.f;
+				entities[ENTITY_CHARACTER].velocity.x = RUN_SPEED;
 			}
 			else
 			{
 				if(animation != WALK_ANIM)
 				{
-					entities[GAME_ENTITY_CHARACTER].animation = (ECS_Animation*)&WALK_ANIMATION;
+					entities[ENTITY_CHARACTER].animation = &walk_animation;
 					animation = WALK_ANIM;
 				}
-				entities[GAME_ENTITY_CHARACTER].velocity.x = 1.f;
+				entities[ENTITY_CHARACTER].velocity.x = WALK_SPEED;
 			}
-			entities[GAME_ENTITY_CHARACTER].sprite_flip = SDL_FLIP_NONE;
+			entities[ENTITY_CHARACTER].sprite_flip = SDL_FLIP_NONE;
 		}
 		else
 		{
 			if(animation != IDLE_ANIM)
 			{
-				entities[GAME_ENTITY_CHARACTER].animation = (ECS_Animation*)&IDLE_ANIMATION;
+				entities[ENTITY_CHARACTER].animation = &idle_animation;
 				animation = IDLE_ANIM;
 			}
-			entities[GAME_ENTITY_CHARACTER].velocity.x = 0.f;
+			entities[ENTITY_CHARACTER].velocity.x = 0.f;
 		}
 
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
 
 		ECS_RenderEntity(
-				entities + GAME_ENTITY_CHARACTER,
-				entities + GAME_ENTITY_CAMERA,
+				entities + ENTITY_CHARACTER,
+				entities + ENTITY_CAMERA,
+				renderer);
+		ECS_RenderEntity(
+				entities + ENTITY_STATIC_CHARACTER,
+				entities + ENTITY_CAMERA,
 				renderer);
 
 		SDL_RenderPresent(renderer);
