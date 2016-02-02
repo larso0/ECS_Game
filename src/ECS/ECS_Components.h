@@ -10,6 +10,7 @@
 
 #include "ECS_Sprite.h"
 #include "ECS_Camera.h"
+#include "ECS_Controller.h"
 
 typedef enum
 {
@@ -22,7 +23,10 @@ typedef enum
 	ECS_COMPONENT_ANGULAR_ACCELERATION = 1 << 5,
 	ECS_COMPONENT_SPRITE = 1 << 6,
 	ECS_COMPONENT_ANIMATION = 1 << 7,
-	ECS_COMPONENT_CAMERA = 1 << 8
+	ECS_COMPONENT_CAMERA = 1 << 8,
+	ECS_COMPONENT_CONTROLLER = 1 << 9,
+	ECS_COMPONENT_HITBOX = 1 << 10,
+	ECS_COMPONENT_HITCIRCLE = 1 << 11
 } ECS_ComponentMask;
 
 typedef struct

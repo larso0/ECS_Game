@@ -30,5 +30,8 @@ void ECS_InitEntity(ECS_Entity* entity)
 		entity->camera.screen_h = 0;
 		entity->camera.center_x = 0;
 		entity->camera.center_y = 0;
+		entity->controller = NULL;
+		entity->controller_function = NULL;
+		entity->controller_data = NULL;
 	}
 }

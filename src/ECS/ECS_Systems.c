@@ -43,6 +43,8 @@ void ECS_ApplyRotation(ECS_Entity* entity, float delta)
 		{
 			entity->angle += entity->angular_velocity * delta;
 		}
+		while(entity->angle > 360.f) entity->angle -= 360.f;
+		while(entity->angle < 0.f) entity->angle += 360.f;
 	}
 }
 
@@ -99,5 +101,14 @@ void ECS_UpdateCamera(ECS_Entity* entity, int w, int h)
 		entity->camera.screen_h = h;
 		entity->camera.center_x = w/2;
 		entity->camera.center_y = h/2;
+	}
+}
+
+void ECS_UpdateController(ECS_Entity* entity, float delta)
+{
+	if(entity && (entity->mask & ECS_SYSTEM_CONTROLLER) == ECS_SYSTEM_CONTROLLER &&
+			entity->controller && entity->controller_function)
+	{
+		(*entity->controller_function)(entity->controller, entity, delta, entity->controller_data);
 	}
 }

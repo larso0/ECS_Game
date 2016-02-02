@@ -10,7 +10,12 @@
 
 #include "ECS_Components.h"
 
-typedef struct
+struct _ECS_Entity;
+typedef struct _ECS_Entity ECS_Entity;
+
+typedef void (*ECS_ControllerFunction)(ECS_Controller*, ECS_Entity*, float, void*);
+
+struct _ECS_Entity
 {
 	int mask;
 	ECS_Vec2 translation;
@@ -25,7 +30,10 @@ typedef struct
 	ECS_Animation* animation;
 	float animation_time;
 	ECS_Camera camera;
-} ECS_Entity;
+	ECS_Controller* controller;
+	ECS_ControllerFunction controller_function;
+	void* controller_data;
+};
 
 void ECS_InitEntity(ECS_Entity* entity);
 
