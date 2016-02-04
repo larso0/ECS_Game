@@ -26,7 +26,6 @@ void ECS_ApplyMovement(ECS_Entity* entity, float delta);
 void ECS_ApplyRotation(ECS_Entity* entity, float delta);
 void ECS_RenderEntity(ECS_Entity* entity, ECS_Entity* camera, SDL_Renderer* renderer);
 void ECS_ApplyAnimation(ECS_Entity* entity, float delta);
-void ECS_UpdateCamera(ECS_Entity* entity, int w, int h);
 void ECS_UpdateController(ECS_Entity* entity, float delta);
 
 #endif /* SRC_ECS_ECS_SYSTEMS_H_ */

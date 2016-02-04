@@ -93,17 +93,6 @@ void ECS_ApplyAnimation(ECS_Entity* entity, float delta)
 	}
 }
 
-void ECS_UpdateCamera(ECS_Entity* entity, int w, int h)
-{
-	if(entity && (entity->mask & ECS_SYSTEM_CAMERA) == ECS_SYSTEM_CAMERA)
-	{
-		entity->camera.screen_w = w;
-		entity->camera.screen_h = h;
-		entity->camera.center_x = w/2;
-		entity->camera.center_y = h/2;
-	}
-}
-
 void ECS_UpdateController(ECS_Entity* entity, float delta)
 {
 	if(entity && (entity->mask & ECS_SYSTEM_CONTROLLER) == ECS_SYSTEM_CONTROLLER &&

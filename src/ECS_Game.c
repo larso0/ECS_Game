@@ -5,14 +5,12 @@
  *      Author: larso
  */
 
-#include <SDL2/SDL.h>
-#include "ECS/ECS_Error.h"
-#include "ECS/ECS_Systems.h"
+#include "ECS/ECS.h"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 #define ENTITY_COUNT 10
-#define ENTITY_CAMERA 1
+#define ENTITY_CAMERA 0
 #define ENTITY_CHARACTER 1
 #define ENTITY_STATIC_CHARACTER 2
 #define WALK_SPEED 2.f
@@ -115,21 +113,8 @@ int Init()
 {
 	int error;
 
-	error = SDL_Init(SDL_INIT_VIDEO);
-	if (error)
-	{
-		ECS_ErrorMessage(SDL_GetError());
-		return 1;
-	}
-
-	int imgmask = IMG_INIT_JPG | IMG_INIT_PNG;
-	int imginit = IMG_Init(imgmask);
-	if((imginit & imginit) != imginit)
-	{
-		ECS_ErrorMessage(IMG_GetError());
-		SDL_Quit();
-		return 2;
-	}
+	error = ECS_Init();
+	if(error) return error;
 
 	window = SDL_CreateWindow("ECS_Game",
 	SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
@@ -171,34 +156,32 @@ int Init()
 
 void InitEntities()
 {
-	entities[ENTITY_CAMERA].mask =
-			ECS_COMPONENT_CAMERA |
-			ECS_COMPONENT_TRANSLATION;
-	entities[ENTITY_CHARACTER].mask |=
+	ECS_SetComponentSprite(entities + ENTITY_CHARACTER, &character_sprite, 0);
+	ECS_SetComponentAnimation(entities + ENTITY_CHARACTER, &idle_animation);
+	ECS_SetComponentController(entities + ENTITY_CHARACTER, &controller, ControllerFn, &pd);
+	ECS_ToggleComponents(entities + ENTITY_CHARACTER,
 			ECS_COMPONENT_TRANSLATION |
 			ECS_COMPONENT_VELOCITY |
 			ECS_COMPONENT_ACCELERATION |
 			ECS_COMPONENT_SPRITE |
 			ECS_COMPONENT_ANIMATION |
-			ECS_COMPONENT_CONTROLLER;
-	entities[ENTITY_CHARACTER].sprite = &character_sprite;
-	entities[ENTITY_CHARACTER].animation = &idle_animation;
-	entities[ENTITY_CHARACTER].controller = &controller;
-	entities[ENTITY_CHARACTER].controller_function = ControllerFn;
-	entities[ENTITY_CHARACTER].controller_data = (void*)&pd;
-	entities[ENTITY_STATIC_CHARACTER].mask =
+			ECS_COMPONENT_CONTROLLER);
+
+	ECS_SetComponentCamera(entities + ENTITY_CAMERA, WINDOW_WIDTH, WINDOW_HEIGHT);
+	ECS_ToggleComponents(entities + ENTITY_CAMERA,
+			ECS_COMPONENT_CAMERA |
+			ECS_COMPONENT_TRANSLATION);
+
+	ECS_SetComponentTranslation(entities + ENTITY_STATIC_CHARACTER, 2.f, 2.f);
+	ECS_SetComponentAngularVelocity(entities + ENTITY_STATIC_CHARACTER, 45.f);
+	ECS_SetComponentSprite(entities + ENTITY_STATIC_CHARACTER, &character_sprite, 0);
+	ECS_SetComponentAnimation(entities + ENTITY_STATIC_CHARACTER, &idle_animation);
+	ECS_ToggleComponents(entities + ENTITY_STATIC_CHARACTER,
 			ECS_COMPONENT_TRANSLATION |
 			ECS_COMPONENT_ANGLE |
 			ECS_COMPONENT_ANGULAR_VELOCITY |
 			ECS_COMPONENT_SPRITE |
-			ECS_COMPONENT_ANIMATION;
-	entities[ENTITY_STATIC_CHARACTER].sprite = &character_sprite;
-	entities[ENTITY_STATIC_CHARACTER].animation = &idle_animation;
-	entities[ENTITY_STATIC_CHARACTER].translation.x = 2.f;
-	entities[ENTITY_STATIC_CHARACTER].translation.y = 2.f;
-	entities[ENTITY_STATIC_CHARACTER].angular_velocity = 45.f;
-
-	ECS_UpdateCamera(entities + ENTITY_CAMERA, WINDOW_WIDTH, WINDOW_HEIGHT);
+			ECS_COMPONENT_ANIMATION);
 }
 
 void Quit()
@@ -207,8 +190,7 @@ void Quit()
 	ECS_CleanSprite(&character_sprite);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
-	IMG_Quit();
-	SDL_Quit();
+	ECS_Quit();
 }
 
 int main(int argc, char** argv)
@@ -229,23 +211,12 @@ int main(int argc, char** argv)
 		float delta = ntime - time;
 		time = ntime;
 
-		ECS_ApplyAnimation(entities + ENTITY_CHARACTER, delta);
-		ECS_ApplyAnimation(entities + ENTITY_STATIC_CHARACTER, delta);
-		ECS_ApplyMovement(entities + ENTITY_CHARACTER, delta);
-		ECS_ApplyRotation(entities + ENTITY_STATIC_CHARACTER, delta);
-		ECS_UpdateController(entities + ENTITY_CHARACTER, delta);
+		ECS_UpdateEntities(entities, ENTITY_COUNT, delta);
 
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
 
-		ECS_RenderEntity(
-				entities + ENTITY_CHARACTER,
-				entities + ENTITY_CAMERA,
-				renderer);
-		ECS_RenderEntity(
-				entities + ENTITY_STATIC_CHARACTER,
-				entities + ENTITY_CAMERA,
-				renderer);
+		ECS_RenderEntities(entities, ENTITY_COUNT, entities + ENTITY_CAMERA, renderer);
 
 		SDL_RenderPresent(renderer);
 
@@ -256,6 +227,13 @@ int main(int argc, char** argv)
 			{
 			case SDL_QUIT:
 				running = 0;
+				break;
+			case SDL_WINDOWEVENT:
+				if(event.window.event == SDL_WINDOWEVENT_RESIZED ||
+						event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+				{
+					ECS_SetComponentCamera(entities + ENTITY_CAMERA, event.window.data1, event.window.data2);
+				}
 				break;
 			default:
 				break;

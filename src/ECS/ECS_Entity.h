@@ -36,5 +36,16 @@ struct _ECS_Entity
 };
 
 void ECS_InitEntity(ECS_Entity* entity);
+void ECS_SetComponentTranslation(ECS_Entity* entity, float x, float y);
+void ECS_SetComponentVelocity(ECS_Entity* entity, float x, float y);
+void ECS_SetComponentAcceleration(ECS_Entity* entity, float x, float y);
+void ECS_SetComponentAngle(ECS_Entity* entity, float angle);
+void ECS_SetComponentAngularVelocity(ECS_Entity* entity, float velocity);
+void ECS_SetComponentAngularAcceleration(ECS_Entity* entity, float acceleration);
+void ECS_SetComponentSprite(ECS_Entity* entity, ECS_Sprite* sprite, size_t index);
+void ECS_SetComponentAnimation(ECS_Entity* entity, ECS_Animation* animation);
+void ECS_SetComponentCamera(ECS_Entity* entity, int w, int h);
+void ECS_SetComponentController(ECS_Entity* entity, ECS_Controller* controller, ECS_ControllerFunction fn, void* data);
+void ECS_ToggleComponents(ECS_Entity* entity, ECS_ComponentMask mask);
 
 #endif /* SRC_ECS_ECS_ENTITY_H_ */
