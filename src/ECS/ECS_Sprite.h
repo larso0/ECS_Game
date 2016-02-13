@@ -9,6 +9,7 @@
 #define SRC_ECS_ECS_SPRITE_H_
 
 #include <SDL2/SDL_image.h>
+#include <stdarg.h>
 
 typedef struct
 {
@@ -27,10 +28,11 @@ void ECS_RenderSprite(ECS_Sprite* sprite, size_t index, SDL_Rect* dst, float ang
 typedef struct
 {
 	float delta;
-	size_t begin;
+	size_t* indices;
 	size_t count;
 } ECS_Animation;
 
-ECS_Animation* ECS_CreateAnimation(float delta, size_t begin, size_t count);
+ECS_Animation* ECS_CreateAnimation(float delta, size_t count, ...);
+void ECS_DestroyAnimation(ECS_Animation* animation);
 
 #endif /* SRC_ECS_ECS_SPRITE_H_ */

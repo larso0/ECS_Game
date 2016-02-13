@@ -89,7 +89,7 @@ void ECS_ApplyAnimation(ECS_Entity* entity, float delta)
 		entity->animation_time += delta;
 		float maxtime = anim->count*anim->delta;
 		while(entity->animation_time > maxtime) entity->animation_time -= maxtime;
-		entity->sprite_index = anim->begin + (size_t)(entity->animation_time / anim->delta);
+		entity->sprite_index = anim->indices[(size_t)(entity->animation_time / anim->delta)];
 	}
 }
 

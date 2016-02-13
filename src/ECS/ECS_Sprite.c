@@ -146,14 +146,39 @@ void ECS_RenderSprite(ECS_Sprite* sprite, size_t index, SDL_Rect* dst, float ang
 	}
 }
 
-ECS_Animation* ECS_CreateAnimation(float delta, size_t begin, size_t count)
+ECS_Animation* ECS_CreateAnimation(float delta, size_t count, ...)
 {
 	ECS_Animation* anim = malloc(sizeof(ECS_Animation));
 	if(anim)
 	{
-		anim->delta = delta;
-		anim->begin = begin;
-		anim->count = count;
+		va_list args;
+		anim->indices = malloc(sizeof(size_t)*count);
+		if(anim->indices)
+		{
+			va_start(args, count);
+			size_t i;
+			for(i = 0; i < count; i++)
+			{
+				anim->indices[i] = va_arg(args, size_t);
+			}
+			va_end(args);
+			anim->count = count;
+			anim->delta = delta;
+		}
+		else
+		{
+			free(anim);
+			anim = NULL;
+		}
 	}
 	return anim;
+}
+
+void ECS_DestroyAnimation(ECS_Animation* animation)
+{
+	if(animation)
+	{
+		free(animation->indices);
+		free(animation);
+	}
 }
