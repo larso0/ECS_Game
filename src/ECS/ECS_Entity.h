@@ -33,6 +33,7 @@ struct _ECS_Entity
 	ECS_Controller* controller;
 	ECS_ControllerFunction controller_function;
 	void* controller_data;
+	int z;
 };
 
 void ECS_InitEntity(ECS_Entity* entity);

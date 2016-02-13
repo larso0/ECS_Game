@@ -33,6 +33,7 @@ void ECS_InitEntity(ECS_Entity* entity)
 		entity->controller = NULL;
 		entity->controller_function = NULL;
 		entity->controller_data = NULL;
+		entity->z = 0;
 	}
 }
 
