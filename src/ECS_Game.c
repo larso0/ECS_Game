@@ -161,7 +161,7 @@ void InitEntities()
 	ECS_SetComponentSprite(entities + ENTITY_CHARACTER, &character_sprite, 0);
 	ECS_SetComponentAnimation(entities + ENTITY_CHARACTER, idle_animation);
 	ECS_SetComponentController(entities + ENTITY_CHARACTER, &controller, ControllerFn, &pd);
-	ECS_ToggleComponents(entities + ENTITY_CHARACTER,
+	ECS_EnableComponents(entities + ENTITY_CHARACTER,
 			ECS_COMPONENT_TRANSLATION |
 			ECS_COMPONENT_VELOCITY |
 			ECS_COMPONENT_SPRITE |
@@ -169,20 +169,20 @@ void InitEntities()
 			ECS_COMPONENT_CONTROLLER);
 
 	ECS_SetComponentCamera(entities + ENTITY_CAMERA, WINDOW_WIDTH, WINDOW_HEIGHT);
-	ECS_ToggleComponents(entities + ENTITY_CAMERA,
-			ECS_COMPONENT_CAMERA);
+	ECS_EnableComponents(entities + ENTITY_CAMERA,
+			ECS_COMPONENT_CAMERA | ECS_COMPONENT_TRANSLATION);
 
 	ECS_SetComponentTranslation(entities + ENTITY_STATIC_CHARACTER, 2.f, 2.f);
 	ECS_SetComponentAngularVelocity(entities + ENTITY_STATIC_CHARACTER, 45.f);
 	ECS_SetComponentSprite(entities + ENTITY_STATIC_CHARACTER, &character_sprite, 0);
 	ECS_SetComponentAnimation(entities + ENTITY_STATIC_CHARACTER, idle_animation);
-	ECS_ToggleComponents(entities + ENTITY_STATIC_CHARACTER,
+	ECS_EnableComponents(entities + ENTITY_STATIC_CHARACTER,
 			ECS_COMPONENT_TRANSLATION |
 			ECS_COMPONENT_ANGLE |
 			ECS_COMPONENT_ANGULAR_VELOCITY |
 			ECS_COMPONENT_SPRITE |
 			ECS_COMPONENT_ANIMATION |
-			ECS_COMPONENT_VELOCITY);
+			ECS_COMPONENT_SIZE);
 }
 
 void Quit()

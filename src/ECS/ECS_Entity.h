@@ -19,6 +19,7 @@ struct _ECS_Entity
 {
 	int mask;
 	ECS_Vec2 translation;
+	struct { float w; float h; } size;
 	ECS_Vec2 velocity;
 	ECS_Vec2 acceleration;
 	float angle;
@@ -38,6 +39,8 @@ struct _ECS_Entity
 
 void ECS_InitEntity(ECS_Entity* entity);
 void ECS_SetComponentTranslation(ECS_Entity* entity, float x, float y);
+void ECS_SetComponentSize(ECS_Entity* entity, float w, float h);
+void ECS_SetComponentSizeFromSprite(ECS_Entity* entity);
 void ECS_SetComponentVelocity(ECS_Entity* entity, float x, float y);
 void ECS_SetComponentAcceleration(ECS_Entity* entity, float x, float y);
 void ECS_SetComponentAngle(ECS_Entity* entity, float angle);
@@ -47,6 +50,9 @@ void ECS_SetComponentSprite(ECS_Entity* entity, ECS_Sprite* sprite, size_t index
 void ECS_SetComponentAnimation(ECS_Entity* entity, ECS_Animation* animation);
 void ECS_SetComponentCamera(ECS_Entity* entity, int w, int h);
 void ECS_SetComponentController(ECS_Entity* entity, ECS_Controller* controller, ECS_ControllerFunction fn, void* data);
+void ECS_EnableComponents(ECS_Entity* entity, ECS_ComponentMask mask);
+void ECS_DisableComponents(ECS_Entity* entity, ECS_ComponentMask mask);
 void ECS_ToggleComponents(ECS_Entity* entity, ECS_ComponentMask mask);
+void ECS_CopyEntity(ECS_Entity* src, ECS_Entity* dst);
 
 #endif /* SRC_ECS_ECS_ENTITY_H_ */

@@ -62,3 +62,46 @@ void ECS_RenderEntities(ECS_Entity* entities, size_t count, ECS_Entity* camera, 
 		}
 	}
 }
+
+static inline void ECS_SwapEntities(ECS_Entity* a, ECS_Entity* b)
+{
+	ECS_Entity tmp;
+	ECS_CopyEntity(a, &tmp);
+	ECS_CopyEntity(b, a);
+	ECS_CopyEntity(&tmp, b);
+}
+
+static inline size_t ECS_QSPartition(ECS_Entity* es, size_t lo, size_t hi)
+{
+	ECS_Entity pivot;
+	ECS_CopyEntity(es + hi, &pivot);
+	size_t i = lo, j = lo;
+	for(; j < hi; j++)
+	{
+		if(es[j].z < pivot.z)
+		{
+			ECS_SwapEntities(es + i, es + j);
+			i++;
+		}
+	}
+	ECS_SwapEntities(es + i, es + hi);
+	return i;
+}
+
+static inline void ECS_QSEntities(ECS_Entity* es, size_t lo, size_t hi)
+{
+	if(lo < hi)
+	{
+		size_t p = ECS_QSPartition(es, lo, hi);
+		ECS_QSEntities(es, lo, p - 1);
+		ECS_QSEntities(es, p + 1, hi);
+	}
+}
+
+void ECS_SortEntities(ECS_Entity* entities, size_t count)
+{
+	if(entities && count > 0)
+	{
+		ECS_QSEntities(entities, 0, count - 1);
+	}
+}

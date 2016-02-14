@@ -55,8 +55,16 @@ void ECS_RenderEntity(ECS_Entity* entity, ECS_Entity* camera, SDL_Renderer* rend
 			entity->sprite && entity->sprite_index < entity->sprite->rectangle_count)
 	{
 		SDL_Rect rect;
-		rect.w = entity->sprite->rectangles[entity->sprite_index].w;
-		rect.h = entity->sprite->rectangles[entity->sprite_index].h;
+		if(entity->mask & ECS_COMPONENT_SIZE)
+		{
+			rect.w = entity->size.w * ECS_PIXELS_PER_METER;
+			rect.h = entity->size.h * ECS_PIXELS_PER_METER;
+		}
+		else
+		{
+			rect.w = entity->sprite->rectangles[entity->sprite_index].w;
+			rect.h = entity->sprite->rectangles[entity->sprite_index].h;
+		}
 		rect.x = -rect.w/2;
 		rect.y = -rect.h/2;
 		if(entity->mask & ECS_COMPONENT_TRANSLATION)
