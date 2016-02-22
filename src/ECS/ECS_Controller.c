@@ -6,6 +6,7 @@
  */
 
 #include "ECS_Controller.h"
+#include "ECS_Error.h"
 
 void ECS_InitController(ECS_Controller* controller, int n)
 {
@@ -13,6 +14,15 @@ void ECS_InitController(ECS_Controller* controller, int n)
 	{
 		controller->key_binding_count = n;
 		controller->key_bindings = malloc(sizeof(SDL_Scancode)*n);
+		size_t i;
+		for(i = 0; i < n; i++)
+        {
+            controller->key_bindings[i] = SDL_SCANCODE_UNKNOWN;
+        }
+        else
+        {
+            ECS_ErrorMessage("Could not allocate memory for controller key bindings.");
+        }
 	}
 }
 
@@ -35,8 +45,20 @@ ECS_Controller* ECS_CreateController(int n)
 			{
 				free(controller);
 				controller = NULL;
+                for(i = 0; i < n; i++)
+                {
+                    controller->key_bindings[i] = SDL_SCANCODE_UNKNOWN;
+                }
 			}
+			else
+            {
+                ECS_ErrorMessage("Could not allocate memory for controller key bindings.");
+            }
 		}
+		else
+        {
+            ECS_ErrorMessage("Could not allocate memory for controller.");
+        }
 	}
 	return controller;
 }

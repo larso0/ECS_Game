@@ -167,10 +167,15 @@ ECS_Animation* ECS_CreateAnimation(float delta, size_t count, ...)
 		}
 		else
 		{
+		    ECS_ErrorMessage("Could not allocate memory for animation indices.");
 			free(anim);
 			anim = NULL;
 		}
 	}
+	else
+    {
+        ECS_ErrorMessage("Could not allocate memory for animation.");
+    }
 	return anim;
 }
 

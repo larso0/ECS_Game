@@ -19,11 +19,12 @@
 static SDL_Window* window;
 static SDL_Renderer* renderer;
 static ECS_Entity entities[ENTITY_COUNT];
-static ECS_Sprite character_sprite;
-static ECS_Animation* idle_animation; // = { 0.2f, 0, 4 };
-static ECS_Animation* walk_animation; // = { 0.1f, 24, 8 };
-static ECS_Animation* run_animation; // = { 0.1f, 4, 8 };
-static ECS_Controller controller;
+static ECS_Sprite* character_sprite;
+static ECS_Sprite* blocks_sprite;
+static ECS_Animation* idle_animation;
+static ECS_Animation* walk_animation;
+static ECS_Animation* run_animation;
+static ECS_Controller* controller;
 
 enum
 {
@@ -131,17 +132,78 @@ int Init()
 		return 4;
 	}
 
-	ECS_InitSprite(&character_sprite);
-	ECS_LoadSprite(&character_sprite,
-			"resources/character_sprite.png",
-			"resources/character_sprite.meta", renderer);
+	character_sprite = ECS_CreateSprite("resources/character_sprite.png", "resources/character_sprite.meta", renderer);
+	if(character_sprite == NULL)
+    {
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+		SDL_Quit();
+		return 5;
+    }
+
+    blocks_sprite = ECS_CreateSprite("resources/blocks_sprite.bmp", "resources/blocks_sprite.meta", renderer);
+	if(character_sprite == NULL)
+    {
+        ECS_DestroySprite(character_sprite);
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+		SDL_Quit();
+		return 5;
+    }
+
 	idle_animation = ECS_CreateAnimation(0.2f, 4, 0, 1, 2, 3);
+	if(idle_animation == NULL)
+    {
+        ECS_DestroySprite(blocks_sprite);
+        ECS_DestroySprite(character_sprite);
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+		SDL_Quit();
+		return 6;
+    }
+
 	walk_animation = ECS_CreateAnimation(0.1f, 8, 24, 25, 26, 27, 28, 29, 30, 31);
+    if(walk_animation == NULL)
+    {
+        ECS_DestroyAnimation(idle_animation);
+        ECS_DestroySprite(blocks_sprite);
+        ECS_DestroySprite(character_sprite);
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+		SDL_Quit();
+		return 6;
+    }
+
 	run_animation = ECS_CreateAnimation(0.1f, 8, 4, 5, 6, 7, 8, 9, 10, 11);
-	ECS_InitController(&controller, 3);
-	ECS_BindKey(&controller, SDL_SCANCODE_LEFT, CONTROLLER_LEFT);
-	ECS_BindKey(&controller, SDL_SCANCODE_RIGHT, CONTROLLER_RIGHT);
-	ECS_BindKey(&controller, SDL_SCANCODE_LALT, CONTROLLER_RUN);
+    if(run_animation == NULL)
+    {
+        ECS_DestroyAnimation(walk_animation);
+        ECS_DestroyAnimation(idle_animation);
+        ECS_DestroySprite(blocks_sprite);
+        ECS_DestroySprite(character_sprite);
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+		SDL_Quit();
+		return 6;
+    }
+
+	controller = ECS_CreateController(3);
+    if(controller == NULL)
+    {
+        ECS_DestroyAnimation(run_animation);
+        ECS_DestroyAnimation(walk_animation);
+        ECS_DestroyAnimation(idle_animation);
+        ECS_DestroySprite(blocks_sprite);
+        ECS_DestroySprite(character_sprite);
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+		SDL_Quit();
+		return 7;
+    }
+
+	ECS_BindKey(controller, SDL_SCANCODE_LEFT, CONTROLLER_LEFT);
+	ECS_BindKey(controller, SDL_SCANCODE_RIGHT, CONTROLLER_RIGHT);
+	ECS_BindKey(controller, SDL_SCANCODE_LALT, CONTROLLER_RUN);
 	pd.idle_animation = idle_animation;
 	pd.walk_animation = walk_animation;
 	pd.run_animation = run_animation;
@@ -158,9 +220,9 @@ int Init()
 
 void InitEntities()
 {
-	ECS_SetComponentSprite(entities + ENTITY_CHARACTER, &character_sprite, 0);
+	ECS_SetComponentSprite(entities + ENTITY_CHARACTER, character_sprite, 0);
 	ECS_SetComponentAnimation(entities + ENTITY_CHARACTER, idle_animation);
-	ECS_SetComponentController(entities + ENTITY_CHARACTER, &controller, ControllerFn, &pd);
+	ECS_SetComponentController(entities + ENTITY_CHARACTER, controller, ControllerFn, &pd);
 	ECS_EnableComponents(entities + ENTITY_CHARACTER,
 			ECS_COMPONENT_TRANSLATION |
 			ECS_COMPONENT_VELOCITY |
@@ -174,7 +236,7 @@ void InitEntities()
 
 	ECS_SetComponentTranslation(entities + ENTITY_STATIC_CHARACTER, 2.f, 2.f);
 	ECS_SetComponentAngularVelocity(entities + ENTITY_STATIC_CHARACTER, 45.f);
-	ECS_SetComponentSprite(entities + ENTITY_STATIC_CHARACTER, &character_sprite, 0);
+	ECS_SetComponentSprite(entities + ENTITY_STATIC_CHARACTER, character_sprite, 0);
 	ECS_SetComponentAnimation(entities + ENTITY_STATIC_CHARACTER, idle_animation);
 	ECS_EnableComponents(entities + ENTITY_STATIC_CHARACTER,
 			ECS_COMPONENT_TRANSLATION |
@@ -187,11 +249,11 @@ void InitEntities()
 
 void Quit()
 {
-	ECS_CleanController(&controller);
+	ECS_DestroyController(controller);
 	ECS_DestroyAnimation(idle_animation);
 	ECS_DestroyAnimation(walk_animation);
 	ECS_DestroyAnimation(run_animation);
-	ECS_CleanSprite(&character_sprite);
+	ECS_DestroySprite(character_sprite);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	ECS_Quit();
