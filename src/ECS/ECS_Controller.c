@@ -14,10 +14,13 @@ void ECS_InitController(ECS_Controller* controller, int n)
 	{
 		controller->key_binding_count = n;
 		controller->key_bindings = malloc(sizeof(SDL_Scancode)*n);
-		size_t i;
-		for(i = 0; i < n; i++)
+		if(controller->key_bindings)
         {
-            controller->key_bindings[i] = SDL_SCANCODE_UNKNOWN;
+            size_t i;
+            for(i = 0; i < n; i++)
+            {
+                controller->key_bindings[i] = SDL_SCANCODE_UNKNOWN;
+            }
         }
         else
         {
@@ -41,17 +44,18 @@ ECS_Controller* ECS_CreateController(int n)
 		{
 			controller->key_binding_count = n;
 			controller->key_bindings = malloc(sizeof(SDL_Scancode)*n);
-			if(!controller->key_bindings)
-			{
-				free(controller);
-				controller = NULL;
+			if(controller->key_bindings)
+            {
+                size_t i;
                 for(i = 0; i < n; i++)
                 {
                     controller->key_bindings[i] = SDL_SCANCODE_UNKNOWN;
                 }
-			}
-			else
-            {
+            }
+            else
+			{
+				free(controller);
+				controller = NULL;
                 ECS_ErrorMessage("Could not allocate memory for controller key bindings.");
             }
 		}

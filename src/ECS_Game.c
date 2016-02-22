@@ -13,6 +13,8 @@
 #define ENTITY_CAMERA 1
 #define ENTITY_CHARACTER 1
 #define ENTITY_STATIC_CHARACTER 2
+#define ENTITY_BLOCK1 3
+#define ENTITY_BLOCK2 4
 #define WALK_SPEED 2.f
 #define RUN_SPEED 4.f
 
@@ -245,6 +247,12 @@ void InitEntities()
 			ECS_COMPONENT_SPRITE |
 			ECS_COMPONENT_ANIMATION |
 			ECS_COMPONENT_SIZE);
+    ECS_SetComponentTranslation(entities + ENTITY_BLOCK1, -0.25f, -1.25f);
+    ECS_SetComponentSprite(entities + ENTITY_BLOCK1, blocks_sprite, 5);
+    ECS_EnableComponents(entities + ENTITY_BLOCK1, ECS_COMPONENT_TRANSLATION | ECS_COMPONENT_SPRITE);
+    ECS_SetComponentTranslation(entities + ENTITY_BLOCK2, 0.25f, -1.25f);
+    ECS_SetComponentSprite(entities + ENTITY_BLOCK2, blocks_sprite, 7);
+    ECS_EnableComponents(entities + ENTITY_BLOCK2, ECS_COMPONENT_TRANSLATION | ECS_COMPONENT_SPRITE);
 }
 
 void Quit()
