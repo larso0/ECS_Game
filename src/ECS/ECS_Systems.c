@@ -109,3 +109,49 @@ void ECS_UpdateController(ECS_Entity* entity, float delta)
 		(*entity->controller_function)(entity->controller, entity, delta, entity->controller_data);
 	}
 }
+
+static inline ECS_Vec2 ECS_ResultPosition(ECS_Entity* e, float delta)
+{
+	ECS_Vec2 t = e->translation;
+	ECS_Vec2 v = e->velocity;
+	ECS_Vec2 a = e->acceleration;
+	ECS_Vec2 d;
+
+	d.x = t.x + v.x*delta;
+	d.y = t.y + v.y*delta;
+	if((e->mask & ECS_COMPONENT_ACCELERATION) == ECS_COMPONENT_ACCELERATION)
+	{
+		d.x += 0.5*a.x*delta*delta;
+		d.y += 0.5*a.y*delta*delta;
+	}
+
+	return d;
+}
+
+static inline void ECS_ResolveCollosion(ECS_Entity* a, ECS_Entity* b, float delta)
+{
+	ECS_Vec2 at = a->translation, bt = b->translation;
+	struct { float w, h; } as = a->size, bs = b->size;
+	ECS_Vec2 av = a->velocity, bv = b->velocity;
+	ECS_Vec2 aa = a->acceleration, ba = b->acceleration;
+}
+
+void ECS_CalculateCollision(ECS_Entity* entities, size_t count, float delta)
+{
+	if(entities)
+	{
+		size_t i, j;
+		for(i = 0; i < count; i++)
+		{
+			ECS_Entity* a = entities + i;
+			if((a->mask & ECS_SYSTEM_COLLISION) != ECS_SYSTEM_COLLISION) continue;
+			for(j = 0; j < count; j++)
+			{
+				if(j == i) continue;
+				ECS_Entity* b = entities + j;
+				if((b->mask & ECS_SYSTEM_COLLISION) != ECS_SYSTEM_COLLISION) continue;
+				ECS_ResolveCollosion(a, b, delta);
+			}
+		}
+	}
+}
