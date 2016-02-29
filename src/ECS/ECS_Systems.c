@@ -112,6 +112,7 @@ void ECS_UpdateController(ECS_Entity* entity, float delta)
 
 static inline ECS_Vec2 ECS_ResultPosition(ECS_Entity* e, float delta)
 {
+	if((e->mask & ECS_COMPONENT_VELOCITY) != ECS_COMPONENT_VELOCITY) return e->translation;
 	ECS_Vec2 t = e->translation;
 	ECS_Vec2 v = e->velocity;
 	ECS_Vec2 a = e->acceleration;
@@ -130,10 +131,10 @@ static inline ECS_Vec2 ECS_ResultPosition(ECS_Entity* e, float delta)
 
 static inline void ECS_ResolveCollosion(ECS_Entity* a, ECS_Entity* b, float delta)
 {
-	ECS_Vec2 at = a->translation, bt = b->translation;
-	struct { float w, h; } as = a->size, bs = b->size;
-	ECS_Vec2 av = a->velocity, bv = b->velocity;
-	ECS_Vec2 aa = a->acceleration, ba = b->acceleration;
+	ECS_Vec2 astart = a->translation;
+	ECS_Vec2 bstart = b->translation;
+	ECS_Vec2 aend = ECS_ResultPosition(a, delta);
+	ECS_Vec2 bend = ECS_ResultPosition(b, delta);
 }
 
 void ECS_CalculateCollision(ECS_Entity* entities, size_t count, float delta)
