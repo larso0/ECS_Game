@@ -26,6 +26,6 @@ void ECS_ApplyRotation(ECS_Entity* entity, float delta);
 void ECS_RenderEntity(ECS_Entity* entity, ECS_Entity* camera, SDL_Renderer* renderer);
 void ECS_ApplyAnimation(ECS_Entity* entity, float delta);
 void ECS_UpdateController(ECS_Entity* entity, float delta);
-void ECS_CalculateCollision(ECS_Entity* entities, size_t count, float delta);
+void ECS_CalculateCollision(ECS_Entity* entities, size_t count);
 
 #endif /* SRC_ECS_ECS_SYSTEMS_H_ */

@@ -6,6 +6,7 @@
  */
 
 #include "ECS_Systems.h"
+#include <math.h>
 
 void ECS_ApplyMovement(ECS_Entity* entity, float delta)
 {
@@ -84,7 +85,7 @@ void ECS_RenderEntity(ECS_Entity* entity, ECS_Entity* camera, SDL_Renderer* rend
 		}
 
 		ECS_RenderSprite(entity->sprite, entity->sprite_index,
-				&rect, (entity->mask & ECS_COMPONENT_ANGLE) ? entity->angle : 0.f,
+				&rect, (entity->mask & ECS_COMPONENT_ANGLE) ? (-entity->angle) : 0.f,
 				entity->sprite_flip, renderer);
 	}
 }
@@ -110,49 +111,73 @@ void ECS_UpdateController(ECS_Entity* entity, float delta)
 	}
 }
 
-static inline ECS_Vec2 ECS_ResultPosition(ECS_Entity* e, float delta)
+typedef struct { ECS_Vec2 ul, ur, ll, lr; } Hitbox;
+
+static inline Hitbox CalculateHitbox(ECS_Entity* e)
 {
-	if((e->mask & ECS_COMPONENT_VELOCITY) != ECS_COMPONENT_VELOCITY) return e->translation;
-	ECS_Vec2 t = e->translation;
-	ECS_Vec2 v = e->velocity;
-	ECS_Vec2 a = e->acceleration;
-	ECS_Vec2 d;
-
-	d.x = t.x + v.x*delta;
-	d.y = t.y + v.y*delta;
-	if((e->mask & ECS_COMPONENT_ACCELERATION) == ECS_COMPONENT_ACCELERATION)
-	{
-		d.x += 0.5*a.x*delta*delta;
-		d.y += 0.5*a.y*delta*delta;
-	}
-
-	return d;
+    Hitbox hb;
+    float halfw = e->size.w/2.f, halfh = e->size.h/2.f;
+    hb.ul.x = hb.ll.x = -halfw;
+    hb.ur.x = hb.lr.x = halfw;
+    hb.ul.y = hb.ur.y = halfh;
+    hb.ll.y = hb.lr.y = -halfh;
+    if((e->mask & ECS_COMPONENT_ANGLE) == ECS_COMPONENT_ANGLE)
+    {
+        float c = cos(e->angle), s = sin(e->angle);
+        float x, y;
+        x = hb.ul.x; y = hb.ul.y;
+        hb.ul.x = x*c - y*s; hb.ul.y = x*s + y*c;
+        x = hb.ur.x; y = hb.ur.y;
+        hb.ur.x = x*c - y*s; hb.ur.y = x*s + y*c;
+        x = hb.ll.x; y = hb.ll.y;
+        hb.ll.x = x*c - y*s; hb.ll.y = x*s + y*c;
+        x = hb.lr.x; y = hb.lr.y;
+        hb.lr.x = x*c - y*s; hb.lr.y = x*s + y*c;
+    }
+    float x = e->translation.x, y = e->translation.y;
+    hb.ul.x += x; hb.ul.y += y;
+    hb.ur.x += x; hb.ur.y += y;
+    hb.ll.x += x; hb.ll.y += y;
+    hb.lr.x += x; hb.lr.y += y;
+    return hb;
 }
 
-static inline void ECS_ResolveCollosion(ECS_Entity* a, ECS_Entity* b, float delta)
+static inline void ResolveCollision(ECS_Entity* a, ECS_Entity* b)
 {
-	ECS_Vec2 astart = a->translation;
-	ECS_Vec2 bstart = b->translation;
-	ECS_Vec2 aend = ECS_ResultPosition(a, delta);
-	ECS_Vec2 bend = ECS_ResultPosition(b, delta);
+    //http://www.gamedev.net/page/resources/_/technical/game-programming/2d-rotated-rectangle-collision-r2604
+    Hitbox hba = CalculateHitbox(a);
+    Hitbox hbb = CalculateHitbox(b);
+    ECS_Vec2 axis1 = {
+        hba.ur.x - hba.ul.x,
+        hba.ur.y - hba.ul.y
+    };
+    ECS_Vec2 axis2 = {
+        hba.ur.x - hba.lr.x,
+        hba.ur.y - hba.lr.y
+    };
+    ECS_Vec2 axis3 = {
+        hbb.ul.x - hbb.ll.x,
+        hbb.ul.y - hbb.ll.y
+    };
+    ECS_Vec2 axis4 = {
+        hba.ul.x - hba.ur.x,
+        hba.ul.y - hba.ur.y
+    };
 }
 
-void ECS_CalculateCollision(ECS_Entity* entities, size_t count, float delta)
+void ECS_CalculateCollision(ECS_Entity* entities, size_t count)
 {
-	if(entities)
-	{
-		size_t i, j;
-		for(i = 0; i < count; i++)
-		{
-			ECS_Entity* a = entities + i;
-			if((a->mask & ECS_SYSTEM_COLLISION) != ECS_SYSTEM_COLLISION) continue;
-			for(j = 0; j < count; j++)
-			{
-				if(j == i) continue;
-				ECS_Entity* b = entities + j;
-				if((b->mask & ECS_SYSTEM_COLLISION) != ECS_SYSTEM_COLLISION) continue;
-				ECS_ResolveCollosion(a, b, delta);
-			}
-		}
-	}
+    if(entities == NULL) return;
+    size_t i, j;
+    for(i = 0; i < count - 1; i++)
+    {
+        ECS_Entity* a = entities + i;
+        if((a->mask & ECS_SYSTEM_COLLISION) != ECS_SYSTEM_COLLISION) continue;
+        for(j = i + 1; j < count; j++)
+        {
+            ECS_Entity* b = entities + j;
+            if((b->mask & ECS_SYSTEM_COLLISION) != ECS_SYSTEM_COLLISION) continue;
+            ResolveCollision(a, b);
+        }
+    }
 }
