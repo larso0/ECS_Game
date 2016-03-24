@@ -1,10 +1,3 @@
-/*
- * ECS_Systems.h
- *
- *  Created on: 25. jan. 2016
- *      Author: larso
- */
-
 #ifndef SRC_ECS_ECS_SYSTEMS_H_
 #define SRC_ECS_ECS_SYSTEMS_H_
 

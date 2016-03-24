@@ -1,10 +1,3 @@
-/*
- * ECS_Sprite.c
- *
- *  Created on: 25. jan. 2016
- *      Author: larso
- */
-
 #include "ECS_Sprite.h"
 #include "ECS_Error.h"
 #include <stdio.h>

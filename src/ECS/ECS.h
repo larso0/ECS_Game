@@ -1,10 +1,3 @@
-/*
- * ECS.h
- *
- *  Created on: 4. feb. 2016
- *      Author: larso
- */
-
 #ifndef SRC_ECS_ECS_H_
 #define SRC_ECS_ECS_H_
 

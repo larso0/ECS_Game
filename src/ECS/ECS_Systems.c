@@ -1,10 +1,3 @@
-/*
- * ECS_Systems.c
- *
- *  Created on: 25. jan. 2016
- *      Author: larso
- */
-
 #include "ECS_Systems.h"
 #include <math.h>
 

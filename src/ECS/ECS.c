@@ -1,10 +1,3 @@
-/*
- * ECS.c
- *
- *  Created on: 4. feb. 2016
- *      Author: larso
- */
-
 #include "ECS.h"
 
 int ECS_Init()

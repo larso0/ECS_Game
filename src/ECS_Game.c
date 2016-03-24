@@ -1,10 +1,3 @@
-/*
- * ECS_Game.c
- *
- *  Created on: 16. jan. 2016
- *      Author: larso
- */
-
 #include "ECS/ECS.h"
 
 #define WINDOW_WIDTH 640

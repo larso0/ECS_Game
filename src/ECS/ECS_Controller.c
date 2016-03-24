@@ -1,10 +1,3 @@
-/*
- * ECS_Controller.c
- *
- *  Created on: 2. feb. 2016
- *      Author: larso
- */
-
 #include "ECS_Controller.h"
 #include "ECS_Error.h"
 

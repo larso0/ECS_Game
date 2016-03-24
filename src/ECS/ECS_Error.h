@@ -1,10 +1,3 @@
-/*
- * ECS_Error.h
- *
- *  Created on: 25. jan. 2016
- *      Author: larso
- */
-
 #ifndef SRC_ECS_ECS_ERROR_H_
 #define SRC_ECS_ECS_ERROR_H_
 

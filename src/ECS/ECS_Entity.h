@@ -1,10 +1,3 @@
-/*
- * ECS_Entity.h
- *
- *  Created on: 25. jan. 2016
- *      Author: larso
- */
-
 #ifndef SRC_ECS_ECS_ENTITY_H_
 #define SRC_ECS_ECS_ENTITY_H_
 
