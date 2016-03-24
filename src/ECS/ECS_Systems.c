@@ -135,7 +135,23 @@ static inline Hitbox CalculateHitbox(ECS_Entity* e)
     return hb;
 }
 
-static inline void ResolveCollision(ECS_Entity* a, ECS_Entity* b)
+static inline ECS_Vec2 ProjectPointAxis(const ECS_Vec2 p, const ECS_Vec2 a)
+{
+	ECS_Vec2 proj = {
+		(p.x * a.x + p.y * a.y) / (pow(a.x, 2) + pow(a.y, 2)),
+		0.f
+	};
+	proj.y = proj.x * a.y;
+	proj.x *= a.x;
+	return proj;
+}
+
+static inline float DotProduct(const ECS_Vec2 a, const ECS_Vec2 b)
+{
+	return a.x * b.x + a.y * b.y;
+}
+
+static void ResolveCollision(ECS_Entity* a, ECS_Entity* b)
 {
     //http://www.gamedev.net/page/resources/_/technical/game-programming/2d-rotated-rectangle-collision-r2604
     Hitbox hba = CalculateHitbox(a);
@@ -156,6 +172,46 @@ static inline void ResolveCollision(ECS_Entity* a, ECS_Entity* b)
         hba.ul.x - hba.ur.x,
         hba.ul.y - hba.ur.y
     };
+
+	//Check axis 1
+	ECS_Vec2 proj_ula = ProjectPointAxis(hba.ul, axis1);
+	ECS_Vec2 proj_ura = ProjectPointAxis(hba.ur, axis1);
+	ECS_Vec2 proj_lla = ProjectPointAxis(hba.ll, axis1);
+	ECS_Vec2 proj_lra = ProjectPointAxis(hba.lr, axis1);
+	ECS_Vec2 proj_ulb = ProjectPointAxis(hbb.ul, axis1);
+	ECS_Vec2 proj_urb = ProjectPointAxis(hbb.ur, axis1);
+	ECS_Vec2 proj_llb = ProjectPointAxis(hbb.ll, axis1);
+	ECS_Vec2 proj_lrb = ProjectPointAxis(hbb.lr, axis1);
+
+	//Check axis 2
+	proj_ula = ProjectPointAxis(hba.ul, axis2);
+	proj_ura = ProjectPointAxis(hba.ur, axis2);
+	proj_lla = ProjectPointAxis(hba.ll, axis2);
+	proj_lra = ProjectPointAxis(hba.lr, axis2);
+	proj_ulb = ProjectPointAxis(hbb.ul, axis2);
+	proj_urb = ProjectPointAxis(hbb.ur, axis2);
+	proj_llb = ProjectPointAxis(hbb.ll, axis2);
+	proj_lrb = ProjectPointAxis(hbb.lr, axis2);
+
+	//Check axis 3
+	proj_ula = ProjectPointAxis(hba.ul, axis3);
+	proj_ura = ProjectPointAxis(hba.ur, axis3);
+	proj_lla = ProjectPointAxis(hba.ll, axis3);
+	proj_lra = ProjectPointAxis(hba.lr, axis3);
+	proj_ulb = ProjectPointAxis(hbb.ul, axis3);
+	proj_urb = ProjectPointAxis(hbb.ur, axis3);
+	proj_llb = ProjectPointAxis(hbb.ll, axis3);
+	proj_lrb = ProjectPointAxis(hbb.lr, axis3);
+
+	//Check axis 4
+	proj_ula = ProjectPointAxis(hba.ul, axis4);
+	proj_ura = ProjectPointAxis(hba.ur, axis4);
+	proj_lla = ProjectPointAxis(hba.ll, axis4);
+	proj_lra = ProjectPointAxis(hba.lr, axis4);
+	proj_ulb = ProjectPointAxis(hbb.ul, axis4);
+	proj_urb = ProjectPointAxis(hbb.ur, axis4);
+	proj_llb = ProjectPointAxis(hbb.ll, axis4);
+	proj_lrb = ProjectPointAxis(hbb.lr, axis4);
 }
 
 void ECS_CalculateCollision(ECS_Entity* entities, size_t count)
