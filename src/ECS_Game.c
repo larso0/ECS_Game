@@ -8,6 +8,7 @@
 #define ENTITY_STATIC_CHARACTER 2
 #define ENTITY_BLOCK1 3
 #define ENTITY_BLOCK2 4
+#define ENTITY_BLOCK3 5
 #define WALK_SPEED 2.f
 #define RUN_SPEED 4.f
 
@@ -246,6 +247,9 @@ void InitEntities()
     ECS_SetComponentTranslation(entities + ENTITY_BLOCK2, 0.25f, -1.25f);
     ECS_SetComponentSprite(entities + ENTITY_BLOCK2, blocks_sprite, 7);
     ECS_EnableComponents(entities + ENTITY_BLOCK2, ECS_COMPONENT_TRANSLATION | ECS_COMPONENT_SPRITE);
+	ECS_SetComponentTranslation(entities + ENTITY_BLOCK3, 3.f, 0.25f);
+	ECS_SetComponentSprite(entities + ENTITY_BLOCK3, blocks_sprite, 8);
+	ECS_EnableComponents(entities + ENTITY_BLOCK3, ECS_COMPONENT_TRANSLATION | ECS_COMPONENT_SPRITE);
 }
 
 void Quit()
@@ -270,7 +274,7 @@ int main(int argc, char** argv)
 
 	InitEntities();
 
-	int running = 1;
+	int running = 1, test_collision = 0;
 	float time = SDL_GetTicks() / 1000.f;
 	while (running)
 	{
@@ -279,6 +283,7 @@ int main(int argc, char** argv)
 		time = ntime;
 
 		ECS_UpdateEntities(entities, ENTITY_COUNT, delta);
+		if(test_collision) ECS_CalculateCollision(entities, ENTITY_COUNT);
 
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 		SDL_RenderClear(renderer);
@@ -302,6 +307,12 @@ int main(int argc, char** argv)
 					ECS_SetComponentCamera(entities + ENTITY_CAMERA, event.window.data1, event.window.data2);
 				}
 				break;
+				case SDL_KEYUP:
+					if(event.key.keysym.scancode == SDL_SCANCODE_C)
+					{
+						test_collision = test_collision ? 0:1;
+					}
+					break;
 			default:
 				break;
 			}

@@ -1,4 +1,5 @@
 #include "ECS_Systems.h"
+#include "ECS_Error.h"
 #include <math.h>
 
 void ECS_ApplyMovement(ECS_Entity* entity, float delta)
@@ -154,64 +155,62 @@ static inline float DotProduct(const ECS_Vec2 a, const ECS_Vec2 b)
 static void ResolveCollision(ECS_Entity* a, ECS_Entity* b)
 {
     //http://www.gamedev.net/page/resources/_/technical/game-programming/2d-rotated-rectangle-collision-r2604
-    Hitbox hba = CalculateHitbox(a);
-    Hitbox hbb = CalculateHitbox(b);
-    ECS_Vec2 axis1 = {
-        hba.ur.x - hba.ul.x,
-        hba.ur.y - hba.ul.y
-    };
-    ECS_Vec2 axis2 = {
-        hba.ur.x - hba.lr.x,
-        hba.ur.y - hba.lr.y
-    };
-    ECS_Vec2 axis3 = {
-        hbb.ul.x - hbb.ll.x,
-        hbb.ul.y - hbb.ll.y
-    };
-    ECS_Vec2 axis4 = {
-        hba.ul.x - hba.ur.x,
-        hba.ul.y - hba.ur.y
+    Hitbox hb[2] = {
+		CalculateHitbox(a),
+		CalculateHitbox(b)
+	};
+    ECS_Vec2 axises[4] = {
+        {
+			hb[0].ur.x - hb[0].ul.x,
+        	hb[0].ur.y - hb[0].ul.y
+		},
+		{
+	        hb[0].ur.x - hb[0].lr.x,
+	        hb[0].ur.y - hb[0].lr.y
+	    },
+		{
+	        hb[1].ul.x - hb[1].ll.x,
+	        hb[1].ul.y - hb[1].ll.y
+	    },
+		{
+	        hb[0].ul.x - hb[0].ur.x,
+	        hb[0].ul.y - hb[0].ur.y
+	    }
     };
 
-	//Check axis 1
-	ECS_Vec2 proj_ula = ProjectPointAxis(hba.ul, axis1);
-	ECS_Vec2 proj_ura = ProjectPointAxis(hba.ur, axis1);
-	ECS_Vec2 proj_lla = ProjectPointAxis(hba.ll, axis1);
-	ECS_Vec2 proj_lra = ProjectPointAxis(hba.lr, axis1);
-	ECS_Vec2 proj_ulb = ProjectPointAxis(hbb.ul, axis1);
-	ECS_Vec2 proj_urb = ProjectPointAxis(hbb.ur, axis1);
-	ECS_Vec2 proj_llb = ProjectPointAxis(hbb.ll, axis1);
-	ECS_Vec2 proj_lrb = ProjectPointAxis(hbb.lr, axis1);
+	ECS_Vec2 proj[8];
+	int i, j;
+	for(i = 0; i < 4; i++)
+	{
+		proj[0] = ProjectPointAxis(hb[0].ul, axises[i]);
+		proj[1] = ProjectPointAxis(hb[0].ur, axises[i]);
+		proj[2] = ProjectPointAxis(hb[0].ll, axises[i]);
+		proj[3] = ProjectPointAxis(hb[0].lr, axises[i]);
+		proj[4] = ProjectPointAxis(hb[1].ul, axises[i]);
+		proj[5] = ProjectPointAxis(hb[1].ur, axises[i]);
+		proj[6] = ProjectPointAxis(hb[1].ll, axises[i]);
+		proj[7] = ProjectPointAxis(hb[1].lr, axises[i]);
 
-	//Check axis 2
-	proj_ula = ProjectPointAxis(hba.ul, axis2);
-	proj_ura = ProjectPointAxis(hba.ur, axis2);
-	proj_lla = ProjectPointAxis(hba.ll, axis2);
-	proj_lra = ProjectPointAxis(hba.lr, axis2);
-	proj_ulb = ProjectPointAxis(hbb.ul, axis2);
-	proj_urb = ProjectPointAxis(hbb.ur, axis2);
-	proj_llb = ProjectPointAxis(hbb.ll, axis2);
-	proj_lrb = ProjectPointAxis(hbb.lr, axis2);
+		float mina = DotProduct(proj[0], axises[i]);
+		float maxa = mina;
+		for(j = 1; j < 4; j++)
+		{
+			float dot = DotProduct(proj[j], axises[i]);
+			if(dot < mina) mina = dot;
+			if(dot > maxa) maxa = dot;
+		}
+		float minb = DotProduct(proj[4], axises[i]);
+		float maxb = minb;
+		for(j = 5; j < 8; j++)
+		{
+			float dot = DotProduct(proj[j], axises[i]);
+			if(dot < minb) minb = dot;
+			if(dot > maxb) maxb = dot;
+		}
 
-	//Check axis 3
-	proj_ula = ProjectPointAxis(hba.ul, axis3);
-	proj_ura = ProjectPointAxis(hba.ur, axis3);
-	proj_lla = ProjectPointAxis(hba.ll, axis3);
-	proj_lra = ProjectPointAxis(hba.lr, axis3);
-	proj_ulb = ProjectPointAxis(hbb.ul, axis3);
-	proj_urb = ProjectPointAxis(hbb.ur, axis3);
-	proj_llb = ProjectPointAxis(hbb.ll, axis3);
-	proj_lrb = ProjectPointAxis(hbb.lr, axis3);
-
-	//Check axis 4
-	proj_ula = ProjectPointAxis(hba.ul, axis4);
-	proj_ura = ProjectPointAxis(hba.ur, axis4);
-	proj_lla = ProjectPointAxis(hba.ll, axis4);
-	proj_lra = ProjectPointAxis(hba.lr, axis4);
-	proj_ulb = ProjectPointAxis(hbb.ul, axis4);
-	proj_urb = ProjectPointAxis(hbb.ur, axis4);
-	proj_llb = ProjectPointAxis(hbb.ll, axis4);
-	proj_lrb = ProjectPointAxis(hbb.lr, axis4);
+		if(minb > maxa || maxb < mina) return; //No overlap
+	}
+	ECS_InformationMessage("Collision");
 }
 
 void ECS_CalculateCollision(ECS_Entity* entities, size_t count)
